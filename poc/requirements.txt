@@ -1,5 +1,3 @@
-autogen-agentchat
-autogen-core
-azure-ai
-azure-search-documents
-asyncio
+python-dotenv
+azure-ai-projects
+azure-identity
