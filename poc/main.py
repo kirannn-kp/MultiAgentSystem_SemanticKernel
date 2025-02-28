@@ -1,8 +1,7 @@
 import asyncio
 from pathlib import Path
-from azure.ai.projects.models import TextMessage
 from azure.ai.projects import AIProjectClient
-from config import PROJECT_CONNECTION_STRING, AZURE_CREDENTIAL
+from config import ASSISTANT_ID
 from agent import create_ai_agent
 from retrieval import get_retrieval_context, upload_documents
 from evaluator import RAGEvaluator
@@ -56,6 +55,7 @@ async def main():
 
 if __name__ == "__main__":
     if asyncio.get_event_loop().is_running():
-        await main()
+        asyncio.create_task(main())
+
     else:
         asyncio.run(main())

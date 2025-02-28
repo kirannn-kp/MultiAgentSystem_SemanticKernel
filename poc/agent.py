@@ -1,27 +1,22 @@
 from azure.ai.projects import AIProjectClient
-from azure.ai.projects.models import CodeInterpreterTool
-from config import PROJECT_CONNECTION_STRING, AZURE_CREDENTIAL
-from pathlib import Path
+from azure.identity import AzureCliCredential
+from config import PROJECT_CONNECTION_STRING, SUBSCRIPTION_ID, RESOURCE_GROUP_NAME, PROJECT_NAME, ASSISTANT_ID
 
 def create_ai_agent():
-    """Creates an AI Agent in Azure AI Foundry and processes a user request."""
-    project_client = AIProjectClient.from_connection_string(
-        credential=AZURE_CREDENTIAL, conn_str=PROJECT_CONNECTION_STRING
+    """Uses an existing AI Agent in Azure AI Foundry and processes a user request."""
+    credential = AzureCliCredential()
+    project_client = AIProjectClient(
+        subscription_id=SUBSCRIPTION_ID,
+        resource_group_name=RESOURCE_GROUP_NAME,
+        project_name=PROJECT_NAME,
+        endpoint=PROJECT_CONNECTION_STRING,
+        credential=credential
     )
 
     with project_client:
-        # Initialize tools
-        code_interpreter = CodeInterpreterTool()
-
-        # Create the AI Agent
-        agent = project_client.agents.create_agent(
-            model="gpt-4o-mini",
-            name="retrieval-agent",
-            instructions="You are an AI assistant that answers questions using ONLY the retrieved context.",
-            tools=code_interpreter.definitions,
-            tool_resources=code_interpreter.resources,
-        )
-        print(f"✅ Created AI Agent: {agent.id}")
+        # Retrieve the existing AI Agent
+        agent = project_client.agents.get_agent(assistant_id=ASSISTANT_ID)
+        print(f"✅ Retrieved AI Agent: {agent.id}")
 
         # Create a thread for the conversation
         thread = project_client.agents.create_thread()
