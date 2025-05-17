@@ -13,6 +13,7 @@ from semantic_kernel.connectors.ai.open_ai.services.azure_chat_completion import
 from azure.search.documents.indexes.models import SearchIndex, SimpleField, SearchableField
 from semantic_kernel.functions.kernel_function import KernelFunction
 import asyncio  
+import webbrowser
 
 
 kernel = Kernel()
@@ -374,50 +375,31 @@ class HydrogenGuidanceAgent:
     """
     def provide_guidance(self, user_query: str) -> str:
         """
-        Provides guidance based on user queries.
+        Provides guidance based on user queries, including actionable map links for location-based queries.
 
         Parameters:
         user_query (str): The user's query.
 
         Returns:
-        str: The guidance provided by the agent.
+        str: The guidance provided by the agent, including map links if applicable.
         """
         print("Calling HydrogenGuidanceAgent...")
 
-        project_client = AIProjectClient(
-            credential=DefaultAzureCredential(),
-            subscription_id=os.getenv("AZURE_SUBSCRIPTION_ID"),
-            resource_group_name=os.getenv("AZURE_RESOURCE_GROUP_NAME"),
-            project_name=os.getenv("AZURE_PROJECT_NAME"),
-            endpoint=os.getenv("PROJECT_CONNECTION_STRING")
-        )
+        # Example: Extract location from query
+        if "nearest hydrogen producer" in user_query.lower():
+            location = user_query.split("in")[-1].strip()
+            print(f"Extracted location: {location}")
 
-        guidance_agent = project_client.agents.create_agent(
-            model="gpt-4o",
-            name="hydrogen-guidance-agent",
-            instructions="You are an expert in providing guidance and answering user queries about hydrogen products.",
-        )
+            # Generate a Google Maps link for the location
+            maps_url = f"https://www.google.com/maps/search/?api=1&query=hydrogen+producer+in+{location}"
 
-        thread = project_client.agents.create_thread()
+            # Open the link in the default web browser
+            webbrowser.open(maps_url)
 
-        message = project_client.agents.create_message(
-            thread_id=thread.id,
-            role="user",
-            content=user_query,
-        )
+            return f"Opening the location of the nearest hydrogen producer in {location} on your browser: {maps_url}"
 
-        run = project_client.agents.create_and_process_run(thread_id=thread.id, agent_id=guidance_agent.id)
-
-        if run.status == "failed":
-            print(f"Run failed: {run.last_error}")
-
-        project_client.agents.delete_agent(guidance_agent.id)
-        messages = project_client.agents.list_messages(thread_id=thread.id)
-        last_msg = messages.get_last_text_message_by_role("assistant")
-
-        print("HydrogenGuidanceAgent completed successfully.")
-
-        return last_msg
+        # Default behavior for other guidance queries
+        return "I'm sorry, I can only provide location-based guidance for now."
 
 class WebSearchAgent:
     """
