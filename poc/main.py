@@ -1,61 +1,64 @@
+from agent import  RealTimeAudioAgent
+from speech_service import  text_to_speech
 import asyncio
-from pathlib import Path
-from azure.ai.projects import AIProjectClient
-from config import ASSISTANT_ID
-from agent import create_ai_agent
-from retrieval import get_retrieval_context, upload_documents
-from evaluator import RAGEvaluator
 
-async def ask_rag(query: str, project_client: AIProjectClient, agent, evaluator: RAGEvaluator):
-    """Processes query using RAG and evaluates the response."""
-    try:
-        retrieval_context = get_retrieval_context(query)
+async def process_user_response(project_client, agent, thread, user_input):
+    """Processes user choice and continues conversation accordingly."""
+    user_input = user_input.strip().lower()  # Normalize input
 
-        augmented_query = (
-            f"Retrieved Context:\n{retrieval_context}\n\n"
-            f"User Query: {query}\n\n"
-            "Based ONLY on the above context, please provide the answer."
-        )
+    # Predefined questions and their responses
+    predefined_responses = {
+        "where is the nearest hydrogen producer": "The nearest hydrogen producer in Mannheim is XYZ Energy.",
+        "where is the nearest hydrogen producer in germany": "The nearest hydrogen producer in Germany is located in Mannheim, operated by XYZ Energy.",
+        "what is hydrogen energy": "Hydrogen energy is a clean and renewable energy source produced by splitting water into hydrogen and oxygen.",
+        "hello, what is your name?": "My name is GitHub Copilot. How can I assist you today?"
+    }
 
-        thread = project_client.agents.create_thread()
-        message = project_client.agents.create_message(thread_id=thread.id, role="user", content=augmented_query)
-        run = project_client.agents.create_and_process_run(thread_id=thread.id, assistant_id=agent.id)
+    normalized_predefined_responses = {
+        key.strip().lower(): value for key, value in predefined_responses.items()
+    }
 
-        # Wait for AI to complete processing
-        if run.status == "failed":
-            print(f"Run failed: {run.last_error}")
-            return None
+    print(f"Debug: Normalized User Input: {user_input}")
 
-        messages = project_client.agents.list_messages(thread_id=thread.id)
-        last_msg = messages.get_last_text_message_by_role("assistant")
+    for question, response in normalized_predefined_responses.items():
+        if all(keyword in user_input for keyword in question.split()):
+            print(f"Matched Predefined Response: {response}")
+            return response
+    print("No predefined response found for the input.")
+    return "I'm sorry, I don't have an answer for that question."
 
-        if last_msg:
-            response_text = last_msg.text.value
-            metrics = evaluator.evaluate_response(query, response_text, [])
-            return {"response": response_text, "metrics": metrics}
-        return None
-    except Exception as e:
-        print(f"Error processing query: {e}")
-        return None
 
 async def main():
-    """Runs the full RAG pipeline."""
-    project_client, agent = create_ai_agent()
-    evaluator = RAGEvaluator()
-    
-    queries = ["What does Contoso Travel offer?", "Explain travel insurance."]
-    
-    for query in queries:
-        print(f"\nProcessing Query: {query}")
-        result = await ask_rag(query, project_client, agent, evaluator)
-        if result:
-            print("Response:", result["response"])
-            print("Metrics:", result["metrics"])
-        print("\n" + "="*60 + "\n")
+    """
+    Entry point for the Hydrogen Orchestrator System.
+    """
+    from agent import HydrogenOrchestratorAgent
+    orchestrator = HydrogenOrchestratorAgent()
+    audio_agent = RealTimeAudioAgent()
+
+    is_audio_mode = False  # Flag to track audio mode
+
+    print("Welcome to the Hydrogen Product Assistant!")
+    print("You can ask me to 'search' for hydrogen products, 'report' on a product, or provide 'guidance'.")
+    print("Type 'audio' to start a real-time audio session, or type your query directly.")
+
+    while True:
+        user_input = input("\n> ").strip()
+        if user_input.lower() in ("exit", "quit"):
+            print("Exiting the assistant. Goodbye!")
+            break
+
+        if user_input.lower() == "audio":
+            is_audio_mode = True
+            await audio_agent.converse()
+            is_audio_mode = False  
+        else:
+
+            response = await orchestrator.orchestrate(user_input)
+            print(f"Assistant: {response}")
+            if is_audio_mode:
+                text_to_speech(response)
+
 
 if __name__ == "__main__":
-    if asyncio.get_event_loop().is_running():
-        asyncio.create_task(main())
-
-    else:
-        asyncio.run(main())
+    asyncio.run(main())
