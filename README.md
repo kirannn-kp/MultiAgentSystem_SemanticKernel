@@ -28,8 +28,8 @@ The Hydrogen Product Assistant is an AI-powered application designed to assist u
 ## Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-repo/vector_aiAgent.git
-   cd vector_aiAgent
+   git clone https://github.com/your-repo/MultiAgentSystem_SemanticKernel.git
+   cd MultiAgentSystem_SemanticKernel
    ```
 2. Install dependencies:
    ```bash
@@ -57,7 +57,7 @@ The Hydrogen Product Assistant is an AI-powered application designed to assist u
 
 ## Project Structure
 ```
-vector_aiAgent/
+MultiAgentSystem_SemanticKernel/
 ├── poc/
 │   ├── agent.py               # Main logic for agents
 │   ├── config.py              # Configuration settings
