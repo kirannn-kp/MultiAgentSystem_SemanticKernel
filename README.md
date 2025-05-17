@@ -1,7 +1,13 @@
-# Hydrogen Product Assistant (MultiAgent System eith Semantic)
+# Hydrogen Product Assistant (MultiAgent System with Semantic Kernel)
 Architecture Diagram
 
-![Architecture Diagram](assets/architecture_diagram.png)
+![image](https://github.com/user-attachments/assets/09ba0df9-c81b-4322-bd2f-f1455b0c2324)
+
+# ASCII Architecture Diagram
+![image](https://github.com/user-attachments/assets/e44bab43-74b2-47ef-87a8-413a3b6850f1)
+
+
+
 
 ## Overview
 The Hydrogen Product Assistant is an AI-powered application designed to assist users in searching for hydrogen-related products, generating detailed reports, and providing actionable guidance. The application integrates Azure Cognitive Search, Azure AI Services, and other tools to deliver a seamless user experience.
